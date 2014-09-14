@@ -11,10 +11,9 @@
 void unicode_test_file(const char* fileName, ByteOrder order)
 {
     FILE *file;
-    void *buffer;
-    char *result = NULL;
+    char *buffer, *result = NULL;
     unsigned long fileLen, offset=0;
-    unsigned char bytesize = 1, bom[4]= {0, 0, 0, 0};
+    unsigned char bytesize = 1, bom[4];
     ByteOrder myorder = 0;
 
     file = fopen(fileName, "rb");
@@ -24,17 +23,6 @@ void unicode_test_file(const char* fileName, ByteOrder order)
     }
 
     printf("reading file %s\n", fileName);
-    fseek(file, 0, SEEK_END);
-    fileLen = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    buffer = malloc(fileLen);
-    if (!buffer) {
-        fprintf(stderr, "Memory error!");
-        fclose(file);
-        exit(1);
-    }
-
     fread(bom, 1, 4, file);
     myorder = UTF8detectBom(bom);
     //printf("UTF8detectBom %d\n", myorder);
@@ -58,16 +46,27 @@ void unicode_test_file(const char* fileName, ByteOrder order)
         break;
     }
 
-    fseek(file, offset, SEEK_SET);
+    fseek(file, offset/*0*/, SEEK_END);
+    fileLen = ftell(file);
+    fseek(file, offset/*0*/, SEEK_SET);
+
+    buffer =(char*) malloc(fileLen + 1);
+    if (!buffer) {
+        fprintf(stderr, "Memory error!");
+        fclose(file);
+        exit(1);
+    }
+    //fseek(file, offset, SEEK_SET);
     fread(buffer, 1, fileLen, file);
     fclose(file);
+	buffer[fileLen] = '\0';
 
-    if (bytesize == 1) {
-        ((char*)buffer)[fileLen - offset] = '\0';
-    } else if (bytesize == 2) {
+    if (bytesize == 2) {
         result = UTF8EncodeUTF16((utf16_t*)buffer, (fileLen / sizeof(utf16_t)), myorder);
     } else if (bytesize == 4) {
         result = UTF8EncodeUTF32((utf32_t*)buffer, (fileLen / sizeof(utf32_t)), myorder);
+    } else {
+    	printf("WE\n");
     }
 
     if (result != NULL) {
@@ -75,7 +74,7 @@ void unicode_test_file(const char* fileName, ByteOrder order)
         free(result);
     } else {
 
-        printf("'%s'\n",(char* ) buffer);
+        printf("'%s'\n", buffer);
     }
 
     free(buffer);

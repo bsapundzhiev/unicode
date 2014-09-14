@@ -1,0 +1,4 @@
+/Debug/
+/test/
+*.vcxproj.user
+*.suo

@@ -41,22 +41,35 @@ typedef unsigned char	byte;
 #define SWAP_UINT16(x) (((x) >> 8) | ((x) << 8))
 #define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
 
-ByteOrder UTF8detectBom(unsigned char bom[4])
+void UTF8GetBom(unsigned char bom[4], ByteOrder order)
+{
+	unsigned int key, i;
+	unsigned int boms[] = {0x0, BOM_UTF_8, BOM_UTF_16LE, BOM_UTF_16BE, BOM_UTF_32LE, BOM_UTF_32BE };
+	for(i = UTF_8BOM; i == UTF_32BE; i++){
+		if(order == i){
+			key = boms[i];
+			bom = (unsigned char*) (&key);
+			break;
+		}
+	}
+}
+
+ByteOrder UTF8detectBom(const unsigned char bom[4])
 {
     int i;
-    unsigned int boms[] = { BOM_UTF_8, BOM_UTF_16LE, BOM_UTF_16BE, BOM_UTF_32LE, BOM_UTF_32BE };
-    unsigned int x = (bom[0] << 24) | (bom[1] << 16) | (bom[2] << 8) | bom[3] ;
+    unsigned int boms[] = {0x0, BOM_UTF_8, BOM_UTF_16LE, BOM_UTF_16BE, BOM_UTF_32LE, BOM_UTF_32BE };
+    unsigned int x = (bom[0] << 24) | (bom[1] << 16) | (bom[2] << 8) | bom[3];
 
-    for (i =0; i < sizeof(boms) / sizeof(boms[0]); i++) {
+    for (i = UTF_8BOM; i < sizeof(boms) / sizeof(boms[0]); i++) {
         //utf_8
-        if (boms[i]==UTF_8BOM && LOW(boms[i]) == (LOW(x) >> 8) && HIGH(x) == HIGH(boms[i]))
-            return i + 1;
+        if (i == UTF_8BOM && LOW(boms[i]) == (LOW(x) >> 8) && HIGH(x) == HIGH(boms[i]))
+            return i;
         //utf_16
         else if (HIGH(boms[i]) == HIGH(x) && LOW(x) != LOW(boms[i]))
-            return i + 1;
+            return i;
         //utf_32
-        else if (i > 2 && HIGH(boms[i]) == HIGH(x) && LOW(x) == LOW(boms[i]))
-            return i + 1;
+        else if (i > UTF_16BE && HIGH(boms[i]) == HIGH(x) && LOW(x) == LOW(boms[i]))
+            return i;
     }
 
     return UTF_8;
@@ -190,7 +203,7 @@ utf32_t * UTF8DecodeUTF32(const char* input, ByteOrder order)
     int cindex =0;
     int i=0, size = strlen(input);
     utf32_t* result = (utf32_t*) malloc(size*sizeof(utf32_t));
-    if (!result) return 0;
+    if (!result) return NULL;
 
     while ( i < size ) {
         utf32_t ch;

@@ -15,8 +15,8 @@ typedef unsigned short	utf16_t;
 typedef unsigned int	utf32_t;
 
 typedef enum {UTF_8, UTF_8BOM, UTF_16LE, UTF_16BE, UTF_32LE, UTF_32BE} ByteOrder;
-void UTF8GetBom(unsigned char bom[4], ByteOrder order);
-ByteOrder UTF8detectBom(const unsigned char bom[4]);
+unsigned int UTF8GetBom(ByteOrder order);
+ByteOrder UTF8detectBom(const unsigned int bom);
 char *UTF8EncodeUTF16(utf16_t* input, size_t size, ByteOrder order);
 utf32_t *UTF8DecodeUTF32(const char *input, ByteOrder order);
 char* UTF8EncodeUTF32(utf32_t *input, size_t size, ByteOrder order);

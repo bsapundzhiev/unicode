@@ -13,7 +13,8 @@ void unicode_test_file(const char* fileName, ByteOrder order)
     FILE *file;
     char *buffer, *result = NULL;
     unsigned long fileLen, offset=0;
-    unsigned char bytesize = 1, bom[4];
+    unsigned char bytesize = 1;
+	unsigned int bom;
     ByteOrder myorder = 0;
 
     file = fopen(fileName, "rb");
@@ -23,10 +24,8 @@ void unicode_test_file(const char* fileName, ByteOrder order)
     }
 
     printf("reading file %s\n", fileName);
-    fread(bom, 1, 4, file);
+    fread(&bom, 1, 4, file);
     myorder = UTF8detectBom(bom);
-    //printf("UTF8detectBom %d\n", myorder);
-    //assert(order ==  UTF8detectBom( bom ));
     switch (myorder) {
     case UTF_8:
         offset = 0;
@@ -46,9 +45,9 @@ void unicode_test_file(const char* fileName, ByteOrder order)
         break;
     }
 
-    fseek(file, offset/*0*/, SEEK_END);
+    fseek(file, offset, SEEK_END);
     fileLen = ftell(file);
-    fseek(file, offset/*0*/, SEEK_SET);
+    fseek(file, offset, SEEK_SET);
 
     buffer =(char*) malloc(fileLen + 1);
     if (!buffer) {
@@ -56,18 +55,19 @@ void unicode_test_file(const char* fileName, ByteOrder order)
         fclose(file);
         exit(1);
     }
-    //fseek(file, offset, SEEK_SET);
+    
     fread(buffer, 1, fileLen, file);
     fclose(file);
 	buffer[fileLen] = '\0';
 
     if (bytesize == 2) {
-        result = UTF8EncodeUTF16((utf16_t*)buffer, (fileLen / sizeof(utf16_t)), myorder);
+        result = UTF8EncodeUTF16((utf16_t*)buffer, (fileLen / sizeof(utf16_t)) - 2, myorder);
     } else if (bytesize == 4) {
         result = UTF8EncodeUTF32((utf32_t*)buffer, (fileLen / sizeof(utf32_t)), myorder);
-    } else {
-    	printf("WE\n");
-    }
+	} else {
+	
+		buffer[fileLen - offset];
+	}
 
     if (result != NULL) {
         printf("'%s'\n", result);
@@ -82,14 +82,12 @@ void unicode_test_file(const char* fileName, ByteOrder order)
 
 int main()
 {
-    //printf("utf32_t: %d wchar_t %d\n", sizeof(utf32_t), sizeof(wchar_t) );
     unicode_test_file("test/test_utf8_no_bom.txt", UTF_8);
     unicode_test_file("test/test_utf8.txt", UTF_8BOM);
     unicode_test_file("test/test_ucs2_LE.txt", UTF_16LE);
     unicode_test_file("test/test_ucs2_BE.txt", UTF_16BE);
     unicode_test_file("test/test_utf32_LE.txt", UTF_32LE);
     unicode_test_file("test/test_utf32_BE.txt", UTF_32BE);
-
 
 #ifdef _WIN32
     _CrtDumpMemoryLeaks();

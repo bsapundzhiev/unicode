@@ -31,34 +31,33 @@ typedef unsigned char	byte;
  * BOM  Encoding |	Representation
  */
 #define BOM_UTF_8		0xEFBBBF00
-#define BOM_UTF_16BE	0xFEFF0000
 #define BOM_UTF_16LE	0xFFFE0000
-#define BOM_UTF_32BE	0x0000FEFF
+#define BOM_UTF_16BE	0xFEFF0000
 #define BOM_UTF_32LE	0xFFFE0000
+#define BOM_UTF_32BE	0x0000FEFF
 
 #define LOW(x) (x & 0xFFFF)
 #define HIGH(x) (x >> 16)
 #define SWAP_UINT16(x) (((x) >> 8) | ((x) << 8))
 #define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
 
-void UTF8GetBom(unsigned char bom[4], ByteOrder order)
+unsigned int UTF8GetBom(ByteOrder order)
 {
-	unsigned int key, i;
-	unsigned int boms[] = {0x0, BOM_UTF_8, BOM_UTF_16LE, BOM_UTF_16BE, BOM_UTF_32LE, BOM_UTF_32BE };
-	for(i = UTF_8BOM; i == UTF_32BE; i++){
+	unsigned int i, boms[] = {0x0, BOM_UTF_8, BOM_UTF_16LE, BOM_UTF_16BE, BOM_UTF_32LE, BOM_UTF_32BE };
+	for(i =1 ; i < sizeof(boms) / sizeof(boms[0]); i++) {
 		if(order == i){
-			key = boms[i];
-			bom = (unsigned char*) (&key);
-			break;
+			return boms[i];
 		}
 	}
+
+	return 0x0;
 }
 
-ByteOrder UTF8detectBom(const unsigned char bom[4])
+ByteOrder UTF8detectBom(const unsigned int bom)
 {
     int i;
     unsigned int boms[] = {0x0, BOM_UTF_8, BOM_UTF_16LE, BOM_UTF_16BE, BOM_UTF_32LE, BOM_UTF_32BE };
-    unsigned int x = (bom[0] << 24) | (bom[1] << 16) | (bom[2] << 8) | bom[3];
+	unsigned int x = SWAP_UINT32(bom);
 
     for (i = UTF_8BOM; i < sizeof(boms) / sizeof(boms[0]); i++) {
         //utf_8

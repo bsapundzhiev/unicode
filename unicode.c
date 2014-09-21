@@ -43,21 +43,21 @@ typedef unsigned char	byte;
 
 unsigned int UTF8GetBom(ByteOrder order)
 {
-	unsigned int i, boms[] = {0x0, BOM_UTF_8, BOM_UTF_16LE, BOM_UTF_16BE, BOM_UTF_32LE, BOM_UTF_32BE };
-	for(i =1 ; i < sizeof(boms) / sizeof(boms[0]); i++) {
-		if(order == i){
-			return boms[i];
-		}
-	}
+    unsigned int i, boms[] = {0x0, BOM_UTF_8, BOM_UTF_16LE, BOM_UTF_16BE, BOM_UTF_32LE, BOM_UTF_32BE };
+    for (i =1 ; i < sizeof(boms) / sizeof(boms[0]); i++) {
+        if (order == i) {
+            return boms[i];
+        }
+    }
 
-	return 0x0;
+    return 0x0;
 }
 
 ByteOrder UTF8detectBom(const unsigned int bom)
 {
     int i;
     unsigned int boms[] = {0x0, BOM_UTF_8, BOM_UTF_16LE, BOM_UTF_16BE, BOM_UTF_32LE, BOM_UTF_32BE };
-	unsigned int x = SWAP_UINT32(bom);
+    unsigned int x = SWAP_UINT32(bom);
 
     for (i = UTF_8BOM; i < sizeof(boms) / sizeof(boms[0]); i++) {
         //utf_8

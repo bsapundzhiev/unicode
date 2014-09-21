@@ -14,7 +14,7 @@ void unicode_test_file(const char* fileName, ByteOrder order)
     char *buffer, *result = NULL;
     unsigned long fileLen, offset=0;
     unsigned char bytesize = 1;
-	unsigned int bom;
+    unsigned int bom;
     ByteOrder myorder = 0;
 
     file = fopen(fileName, "rb");
@@ -55,19 +55,19 @@ void unicode_test_file(const char* fileName, ByteOrder order)
         fclose(file);
         exit(1);
     }
-    
+
     fread(buffer, 1, fileLen, file);
     fclose(file);
-	buffer[fileLen] = '\0';
+    buffer[fileLen] = '\0';
 
     if (bytesize == 2) {
         result = UTF8EncodeUTF16((utf16_t*)buffer, (fileLen / sizeof(utf16_t)) - 2, myorder);
     } else if (bytesize == 4) {
         result = UTF8EncodeUTF32((utf32_t*)buffer, (fileLen / sizeof(utf32_t)), myorder);
-	} else {
-	
-		buffer[fileLen - offset];
-	}
+    } else {
+
+        buffer[fileLen - offset];
+    }
 
     if (result != NULL) {
         printf("'%s'\n", result);
